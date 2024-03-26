@@ -6,6 +6,8 @@ const productController = require('../../../src/controllers/productController');
 const productService = require('../../../src/services/productService');
 const productModel = require('../../../src/models/productModel');
 
+const newProduct = 'New Product';
+
 describe('Product Controller', function () {
   describe('GET /products', function () {
     it('deve listar todos os produtos', async function () {
@@ -97,5 +99,41 @@ describe('Product Controller', function () {
     assert.lengthOf(products, 0);
 
     productModel.getAllProducts.restore();
+  });
+  it('deve criar um novo produto', async function () {
+    const mockResult = { insertId: 1 };
+    sinon.stub(db, 'execute').resolves([mockResult]);
+
+    const product = await productModel.createProduct(newProduct);
+
+    assert.deepEqual(product, { id: 1, name: newProduct });
+
+    db.execute.restore();
+  });
+  it('deve chamar createProduct de productModel', async function () {
+    const createProductStub = sinon.stub(productModel, 'createProduct').resolves({ id: 1, name: newProduct });
+
+    const product = await productService.createProduct(newProduct);
+
+    assert.deepEqual(product, { id: 1, name: newProduct });
+    assert.isTrue(createProductStub.calledOnce);
+
+    productModel.createProduct.restore();
+  });
+  it('deve chamar createProduct de productService e retornar 201 status', async function () {
+    const req = { body: { name: newProduct } };
+    const res = {
+      status: sinon.stub().returnsThis(),
+      json: sinon.stub(),
+    };
+
+    sinon.stub(productService, 'createProduct').resolves({ id: 1, name: newProduct });
+
+    await productController.createProduct(req, res);
+
+    assert(res.status.calledWith(201));
+    assert(res.json.calledWith({ id: 1, name: newProduct }));
+
+    productService.createProduct.restore();
   });
 });
