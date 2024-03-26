@@ -1,7 +1,10 @@
+const { assert } = require('chai');
 const sinon = require('sinon');
 const { expect } = require('chai');
+const db = require('../../../src/models/db');
 const productController = require('../../../src/controllers/productController');
 const productService = require('../../../src/services/productService');
+const productModel = require('../../../src/models/productModel');
 
 describe('Product Controller', function () {
   describe('GET /products', function () {
@@ -53,5 +56,46 @@ describe('Product Controller', function () {
 
       productService.getProductById.restore();
     });
+  });
+  it('deve chamar productModel.getProductById(id)', async function () {
+    const mockProduct = { id: 1, name: 'Martelo de Thor' };
+
+    sinon.stub(productModel, 'getProductById').resolves(mockProduct);
+
+    const product = await productService.getProductById(1);
+
+    assert.isObject(product);
+    assert.deepEqual(product, mockProduct);
+
+    productModel.getProductById.restore();
+  });
+  it('deve retornar nulo se não encontrar produtos', async function () {
+    sinon.stub(db, 'execute').resolves([[]]);
+
+    const product = await productModel.getProductById(9999);
+
+    assert.isNull(product);
+
+    db.execute.restore();
+  });
+  it('array vazio se não encontrar produtos', async function () {
+    sinon.stub(db, 'execute').resolves([[]]);
+
+    const products = await productModel.getAllProducts();
+
+    assert.isArray(products);
+    assert.lengthOf(products, 0);
+
+    db.execute.restore();
+  });
+  it('deve retornar um array vazio se não encontrar nada ', async function () {
+    sinon.stub(productModel, 'getAllProducts').resolves([]);
+
+    const products = await productService.getAllProducts();
+
+    assert.isArray(products);
+    assert.lengthOf(products, 0);
+
+    productModel.getAllProducts.restore();
   });
 });
