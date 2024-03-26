@@ -1,5 +1,7 @@
 const { assert } = require('chai');
+const chai = require('chai');
 const express = require('express');
+const chaiHttp = require('chai-http');
 const sinon = require('sinon');
 const db = require('../../../src/models/db');
 const saleModel = require('../../../src/models/saleModel');
@@ -7,12 +9,39 @@ const saleService = require('../../../src/services/saleService');
 const saleController = require('../../../src/controllers/saleController');
 const saleRoutes = require('../../../src/controllers/saleRoutes');
 
+const { expect } = chai;
+
+chai.use(chaiHttp);
+
 const app = express();
 app.use('/sales', saleRoutes);
 
 const data = '2022-01-01';
 
 describe('saleModel', function () {
+  let createSaleStub;
+  let addSaleItemStub;
+
+  beforeEach(function () {
+    createSaleStub = sinon.stub(saleService, 'createSale').resolves(1);
+    addSaleItemStub = sinon.stub(saleService, 'addSaleItem').resolves({});
+  });
+
+  afterEach(function () {
+    sinon.restore();
+  });
+
+  it('POST /sales should return 400 if items are missing', async function () {
+    const res = await chai.request(app)
+      .post('/sales')
+      .send({});
+
+    expect(createSaleStub.called).to.equal(false);
+    expect(addSaleItemStub.called).to.equal(false);
+    expect(res.status).to.equal(400);
+    expect(res.body.message).to.equal('Items array is required');
+  });
+
   it('deve retornar um array de sales', async function () {
     const sales = await saleModel.getAllSales();
     assert.isArray(sales);

@@ -14,7 +14,26 @@ const getSaleById = async (req, res) => {
   }
 };
 
+const createSale = async (req, res) => {
+  const items = req.body;
+  
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ message: 'Items array is required' });
+  }
+
+  const saleId = await saleService.createSale();
+  await saleService.addSaleItem(saleId, items);
+
+  const sale = {
+    id: saleId,
+    itemsSold: items,
+  };
+
+  res.status(201).json(sale);
+};
+
 module.exports = {
   getAllSales,
   getSaleById,
+  createSale,
 };
