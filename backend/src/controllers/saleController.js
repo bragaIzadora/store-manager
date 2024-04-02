@@ -13,10 +13,9 @@ const getSaleById = async (req, res) => {
     res.status(404).json({ message: 'Sale not found' });
   }
 };
-
 const createSale = async (req, res) => {
   const items = req.body;
-  
+
   if (!items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ message: 'Items array is required' });
   }
