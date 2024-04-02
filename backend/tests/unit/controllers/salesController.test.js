@@ -8,6 +8,7 @@ const saleModel = require('../../../src/models/saleModel');
 const saleService = require('../../../src/services/saleService');
 const saleController = require('../../../src/controllers/saleController');
 const saleRoutes = require('../../../src/controllers/saleRoutes');
+const { validateSale } = require('../../../src/middlewares/validateSale');
 
 chai.use(chaiHttp);
 
@@ -194,5 +195,31 @@ describe('saleModel', function () {
     assert.lengthOf(sale, 0);
 
     saleModel.getSaleById.restore();
+  });
+  it('deve retornar 400 se productId não for fornecido', async function () {
+    const req = {
+      body: [{ quantity: 1 }],
+    };
+    const res = {
+      status: sinon.stub().returnsThis(),
+      json: sinon.stub(),
+    };
+
+    await validateSale(req, res);
+    assert.ok(res.status.calledWith(400));
+    assert.ok(res.json.calledWith({ message: '"productId" is required' }));
+  });
+  it('deve retornar 400 se items não for fornecido', async function () {
+    const req = {
+      body: null,
+    };
+    const res = {
+      status: sinon.stub().returnsThis(),
+      json: sinon.stub(),
+    };
+
+    await saleController.createSale(req, res);
+    assert.ok(res.status.calledWith(400));
+    assert.ok(res.json.calledWith({ message: 'Items array is required' }));
   });
 });
