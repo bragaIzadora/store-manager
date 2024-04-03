@@ -7,7 +7,7 @@ const db = require('../../../src/models/db');
 const saleModel = require('../../../src/models/saleModel');
 const saleService = require('../../../src/services/saleService');
 const saleController = require('../../../src/controllers/saleController');
-const saleRoutes = require('../../../src/controllers/saleRoutes');
+const saleRoutes = require('../../../src/routes/saleRoutes');
 const { validateSale } = require('../../../src/middlewares/validateSale');
 
 chai.use(chaiHttp);
